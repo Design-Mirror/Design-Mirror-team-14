@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Comments — Design Mirror</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+
+<style>
+  :root{
+    --paper:#FAF7F2;
+    --surface:#FFFFFF;
+    --ink:#1B1A22;
+    --ink-soft:#68647A;
+    --ink-faint:#9A96AC;
+    --border:#E8E3D8;
+    --violet:#6C5CE7;
+    --violet-strong:#5A48D6;
+    --violet-soft:#EEEAFC;
+    --coral:#FF6B4A;
+    --coral-soft:#FFE9E2;
+    --sage:#2FAE66;
+    --sage-soft:#E4F6EC;
+    --rose:#E5484D;
+    --rose-soft:#FCE6E6;
+    --shadow: 0 8px 28px rgba(38, 30, 70, 0.08);
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"]{
+    --paper:#131219;
+    --surface:#1C1B25;
+    --ink:#EEEBF6;
+    --ink-soft:#A29DBC;
+    --ink-faint:#716C8C;
+    --border:#2C2A3A;
+    --violet:#8C7CF6;
+    --violet-strong:#A392FF;
+    --violet-soft:#242038;
+    --coral:#FF8B6B;
+    --coral-soft:#3A2620;
+    --sage:#49CE87;
+    --sage-soft:#183524;
+    --rose:#FF7A7E;
+    --rose-soft:#3A2022;
+    --shadow: 0 10px 32px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#131219;
+      --surface:#1C1B25;
+      --ink:#EEEBF6;
+      --ink-soft:#A29DBC;
+      --ink-faint:#716C8C;
+      --border:#2C2A3A;
+      --violet:#8C7CF6;
+      --violet-strong:#A392FF;
+      --violet-soft:#242038;
+      --coral:#FF8B6B;
+      --coral-soft:#3A2620;
+      --sage:#49CE87;
+      --sage-soft:#183524;
+      --rose:#FF7A7E;
+      --rose-soft:#3A2022;
+      --shadow: 0 10px 32px rgba(0,0,0,0.35);
+      color-scheme: dark;
+    }
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:
+      radial-gradient(560px 320px at 50% -10%, var(--violet-soft) 0%, transparent 65%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  #root{ min-height:100vh; }
+
+  button{ font-family:inherit; }
+  textarea, input, select{ font-family:inherit; }
+  a{ color:inherit; }
+
+  ::selection{ background:var(--violet); color:#fff; }
+
+  :focus-visible{
+    outline: 2px solid var(--violet);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  .app-shell{
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 40px 24px 120px;
+  }
+  @media (max-width: 900px){
+    .app-shell{ padding: 32px 20px 100px; }
+  }
+  @media (max-width: 600px){
+    .app-shell{ padding: 20px 14px 90px; max-width:100%; }
+  }
+
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  @media (max-width:600px){
+    .panel{ border-left:none; border-right:none; border-radius:0; box-shadow:none; }
+  }
+
+  /* ---------- Header ---------- */
+  .header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 16px;
+    padding: 26px 28px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  @media (max-width:600px){
+    .header{ padding: 18px 16px 14px; flex-wrap:wrap; }
+  }
+  .header-title-wrap{ display:flex; align-items:baseline; gap:10px; }
+  .header-title{
+    font-family:'Fraunces', Georgia, serif;
+    font-weight:600;
+    font-size: 26px;
+    letter-spacing: -0.01em;
+    margin:0;
+  }
+  .header-count{
+    color: var(--ink-faint);
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+  .header-actions{ display:flex; align-items:center; gap:8px; }
+
+  .icon-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--ink-soft);
+    cursor:pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .icon-btn:hover{ background: var(--violet-soft); color: var(--violet); border-color: transparent; }
+  .icon-btn:active{ transform: scale(0.94); }
+  .icon-btn.active{ background: var(--violet-soft); color: var(--violet); border-color:transparent; }
+  .icon-btn svg{ width:18px; height:18px; }
+
+  .search-row{
+    display:flex; align-items:center; gap:8px;
+    overflow:hidden;
+    max-height:0;
+    padding: 0 28px;
+    transition: max-height .25s ease, padding .25s ease;
+  }
+  .search-row.open{ max-height:64px; padding: 0 28px 16px; }
+  @media (max-width:600px){
+    .search-row{ padding: 0 16px; }
+    .search-row.open{ padding: 0 16px 14px; }
+  }
+  .search-input-wrap{
+    flex:1;
+    display:flex; align-items:center; gap:8px;
+    background: var(--paper);
+    border:1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+  }
+  .search-input-wrap svg{ width:16px; height:16px; color:var(--ink-faint); flex-shrink:0; }
+  .search-input-wrap input{
+    border:none; background:transparent; outline:none; color:var(--ink);
+    width:100%; font-size:14px;
+  }
+  .search-input-wrap input::placeholder{ color: var(--ink-faint); }
+
+  .sort-select{
+    border:1px solid var(--border);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: var(--radius-sm);
+    padding: 9px 30px 9px 12px;
+    font-size: 13px;
+    cursor:pointer;
+    appearance:none;
+    -webkit-appearance:none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2368647A' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position: right 12px center;
+  }
+
+  /* ---------- Composer ---------- */
+  .composer{
+    display:flex;
+    gap:14px;
+    padding: 22px 28px 24px;
+    border-bottom: 8px solid var(--paper);
+  }
+  @media (max-width:600px){ .composer{ padding: 16px; } }
+
+  .avatar{
+    width:40px; height:40px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:600; color:#fff;
+    flex-shrink:0;
+    user-select:none;
+  }
+  .avatar.sm{ width:34px; height:34px; font-size:12.5px; }
+  .avatar.xs{ width:28px; height:28px; font-size:11px; }
+
+  .composer-body{ flex:1; min-width:0; }
+  .composer textarea{
+    width:100%;
+    resize:none;
+    border: 1.5px solid var(--border);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    font-size: 14.5px;
+    line-height:1.5;
+    min-height: 52px;
+    transition: border-color .15s ease;
+  }
+  .composer textarea:focus{ border-color: var(--violet); outline:none; }
+  .composer textarea::placeholder{ color: var(--ink-faint); }
+
+  .mention-pop{
+    margin-top:6px;
+    background: var(--surface);
+    border:1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+    max-width: 220px;
+  }
+  .mention-pop button{
+    display:flex; align-items:center; gap:8px;
+    width:100%; text-align:left; padding:8px 12px;
+    background:transparent; border:none; cursor:pointer; color:var(--ink);
+    font-size:13.5px;
+  }
+  .mention-pop button:hover{ background:var(--violet-soft); }
+
+  .composer-footer{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top: 10px;
+  }
+  .composer-footer-left{ display:flex; align-items:center; gap:6px; position:relative; }
+
+  .emoji-pop{
+    position:absolute; top:38px; left:0; z-index:20;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius-md); box-shadow:var(--shadow);
+    padding:10px; display:grid; grid-template-columns:repeat(6,1fr); gap:4px;
+    width:220px;
+  }
+  .emoji-pop button{
+    background:none; border:none; font-size:18px; cursor:pointer;
+    border-radius:6px; padding:4px; line-height:1;
+  }
+  .emoji-pop button:hover{ background:var(--violet-soft); }
+
+  .char-count{ font-size:12.5px; color: var(--ink-faint); font-variant-numeric:tabular-nums; }
+  .char-count.warn{ color: var(--coral); }
+  .char-count.max{ color: var(--rose); }
+
+  .btn{
+    border:none; border-radius: 999px;
+    padding: 9px 20px;
+    font-size: 14px; font-weight:600;
+    cursor:pointer;
+    transition: background .15s ease, transform .1s ease, box-shadow .15s ease, opacity .15s ease;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn-primary{
+    background: var(--violet); color:#fff;
+  }
+  .btn-primary:hover:not(:disabled){ background: var(--violet-strong); }
+  .btn-primary:disabled{ opacity:.4; cursor:not-allowed; }
+  .btn-ghost{
+    background: transparent; color: var(--ink-soft); border:1px solid var(--border);
+  }
+  .btn-ghost:hover{ background: var(--paper); }
+  .btn-danger{ background: var(--rose); color:#fff; }
+  .btn-danger:hover{ opacity:.9; }
+  .btn-sm{ padding:7px 14px; font-size:13px; }
+
+  .post-success{
+    display:inline-flex; align-items:center; gap:6px;
+    color: var(--sage); font-size:13px; font-weight:600;
+    animation: pop-in .35s ease;
+  }
+  @keyframes pop-in{
+    0%{ opacity:0; transform: scale(0.7); }
+    60%{ opacity:1; transform: scale(1.08); }
+    100%{ transform: scale(1); }
+  }
+
+  /* ---------- Comment list ---------- */
+  .list{ padding: 4px 28px 20px; }
+  @media (max-width:600px){ .list{ padding: 4px 14px 16px; } }
+
+  .comment{
+    display:flex; gap:14px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    transition: opacity .3s ease, max-height .3s ease, transform .3s ease, padding .3s ease, margin .3s ease;
+  }
+  .comment:last-child{ border-bottom:none; }
+  .comment.removing{
+    opacity:0; transform: translateX(6px); max-height:0; padding:0; margin:0; overflow:hidden; border:none;
+  }
+  .comment.flash{ animation: flash-bg 1.4s ease; }
+  @keyframes flash-bg{
+    0%{ background: var(--violet-soft); }
+    100%{ background: transparent; }
+  }
+
+  .comment-main{ flex:1; min-width:0; }
+  .comment-headline{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .comment-name{ font-weight:600; font-size:14.5px; }
+  .verified-badge{ color:var(--violet); display:inline-flex; }
+  .verified-badge svg{ width:14px; height:14px; }
+  .comment-time{ font-size:12.5px; color:var(--ink-faint); }
+  .comment-edited{ font-size:12px; color:var(--ink-faint); font-style:italic; }
+
+  .comment-text{
+    margin: 6px 0 10px;
+    font-size: 14.5px;
+    line-height:1.55;
+    color: var(--ink);
+    white-space:pre-wrap;
+    word-break: break-word;
+  }
+  .comment-text .mention{ color:var(--violet); font-weight:600; }
+
+  .comment-actions{
+    display:flex; align-items:center; gap:4px;
+    position:relative;
+  }
+  .action-btn{
+    display:inline-flex; align-items:center; gap:5px;
+    background:none; border:none; cursor:pointer;
+    color: var(--ink-faint);
+    font-size: 13px; font-weight:500;
+    padding: 6px 9px; border-radius: 999px;
+    transition: background .15s ease, color .15s ease, transform .1s ease;
+  }
+  .action-btn:hover{ background: var(--paper); color: var(--ink-soft); }
+  .action-btn svg{ width:16px; height:16px; }
+  .action-btn.like.on{ color: var(--coral); }
+  .action-btn.like.on svg{ fill: var(--coral); }
+  .action-btn.dislike.on{ color: var(--rose); }
+  .action-btn.dislike.on svg{ fill: var(--rose); }
+  .action-btn.bump{ animation: bump .28s ease; }
+  @keyframes bump{
+    0%{ transform: scale(1); } 45%{ transform: scale(1.28); } 100%{ transform: scale(1); }
+  }
+
+  .more-menu{
+    position:absolute; top:36px; right:0; z-index:15;
+    background: var(--surface);
+    border:1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+    min-width:160px;
+    overflow:hidden;
+  }
+  .more-menu button{
+    display:flex; align-items:center; gap:9px;
+    width:100%; padding:10px 14px; text-align:left;
+    background:none; border:none; cursor:pointer;
+    font-size:13.5px; color:var(--ink);
+  }
+  .more-menu button:hover{ background: var(--violet-soft); color:var(--violet); }
+  .more-menu button.danger:hover{ background: var(--rose-soft); color:var(--rose); }
+  .more-menu svg{ width:15px; height:15px; }
+
+  /* Reply thread */
+  .replies{
+    margin-top: 14px;
+    padding-left: 22px;
+    border-left: 2px solid var(--border);
+    display:flex; flex-direction:column; gap:16px;
+  }
+  @media (max-width:600px){ .replies{ padding-left:14px; } }
+
+  .reply-input-row{
+    display:flex; gap:10px; margin-top:14px;
+    animation: slide-down .2s ease;
+  }
+  @keyframes slide-down{
+    from{ opacity:0; transform: translateY(-6px); } to{ opacity:1; transform:none; }
+  }
+  .reply-input-row textarea{
+    width:100%; resize:none; min-height:40px;
+    border:1.5px solid var(--border); background:var(--paper); color:var(--ink);
+    border-radius: var(--radius-sm); padding:9px 12px; font-size:13.5px; line-height:1.5;
+  }
+  .reply-input-row textarea:focus{ border-color: var(--violet); outline:none; }
+  .reply-input-actions{ display:flex; gap:8px; margin-top:8px; }
+
+  .edit-row textarea{
+    width:100%; resize:none; min-height:60px;
+    border:1.5px solid var(--violet); background:var(--paper); color:var(--ink);
+    border-radius: var(--radius-sm); padding:10px 12px; font-size:14.5px; line-height:1.55;
+  }
+  .edit-row-actions{ display:flex; gap:8px; margin-top:8px; }
+
+  /* ---------- Empty / Skeleton ---------- */
+  .empty-state{
+    text-align:center; padding: 64px 28px 56px;
+  }
+  .empty-state .glyph{
+    width:56px; height:56px; margin:0 auto 16px;
+    border-radius:50%; background:var(--violet-soft); color:var(--violet);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .empty-state .glyph svg{ width:26px; height:26px; }
+  .empty-state h3{
+    font-family:'Fraunces', serif; font-weight:600; font-size:19px; margin: 0 0 6px;
+  }
+  .empty-state p{ color:var(--ink-soft); font-size:14px; margin:0 0 18px; max-width:320px; margin-inline:auto; }
+
+  .skeleton-item{ display:flex; gap:14px; padding:20px 0; border-bottom:1px solid var(--border); }
+  .skeleton-item:last-child{ border-bottom:none; }
+  .sk{
+    background: linear-gradient(90deg, var(--border) 25%, var(--paper) 50%, var(--border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease infinite;
+    border-radius: 6px;
+  }
+  @keyframes shimmer{ 0%{ background-position:200% 0; } 100%{ background-position:-200% 0; } }
+  .sk-avatar{ width:40px; height:40px; border-radius:50%; flex-shrink:0; }
+  .sk-line{ height:11px; margin-bottom:8px; }
+
+  /* ---------- Toasts ---------- */
+  .toast-stack{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    display:flex; flex-direction:column; gap:8px; z-index:100;
+    width: min(360px, calc(100vw - 32px));
+  }
+  .toast{
+    display:flex; align-items:center; gap:10px;
+    background: var(--surface); color:var(--ink);
+    border:1px solid var(--border);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 13.5px;
+    animation: toast-in .25s ease;
+  }
+  @keyframes toast-in{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform:none; } }
+  .toast .dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .toast.success .dot{ background: var(--sage); }
+  .toast.error .dot{ background: var(--rose); }
+  .toast.info .dot{ background: var(--violet); }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; background: rgba(10,8,20,0.45);
+    display:flex; align-items:center; justify-content:center;
+    z-index: 200; padding: 20px;
+    animation: fade-in .15s ease;
+  }
+  @keyframes fade-in{ from{ opacity:0; } to{ opacity:1; } }
+  .modal-box{
+    background: var(--surface); border-radius: var(--radius-md);
+    padding: 24px; max-width: 340px; width:100%;
+    box-shadow: var(--shadow);
+    animation: modal-in .2s ease;
+  }
+  @keyframes modal-in{ from{ opacity:0; transform: scale(0.94) translateY(6px); } to{ opacity:1; transform:none; } }
+  .modal-box h4{ margin:0 0 8px; font-size:16px; font-family:'Fraunces', serif; font-weight:600; }
+  .modal-box p{ margin:0 0 20px; font-size:13.5px; color:var(--ink-soft); line-height:1.5; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:10px; }
+
+  .visually-hidden{
+    position:absolute; width:1px; height:1px; overflow:hidden;
+    clip:rect(0,0,0,0); white-space:nowrap;
+  }
+
+  /* ---------- Enhanced reactions / emoji / sticker picker ---------- */
+  .composer-tools{display:flex;align-items:center;gap:4px;position:relative;}
+  .tool-btn{
+    width:32px;height:32px;border:1px solid transparent;background:transparent;
+    color:var(--ink-soft);border-radius:50%;display:inline-flex;align-items:center;
+    justify-content:center;cursor:pointer;transition:.15s ease;
+  }
+  .tool-btn:hover,.tool-btn.active{background:var(--violet-soft);color:var(--violet);}
+  .tool-btn svg{width:16px;height:16px;}
+  .picker{
+    position:absolute;left:0;bottom:42px;width:300px;z-index:40;
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    box-shadow:var(--shadow);overflow:hidden;animation:picker-in .18s ease;
+  }
+  @keyframes picker-in{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+  .picker-tabs{display:flex;border-bottom:1px solid var(--border);padding:6px;gap:4px;}
+  .picker-tab{flex:1;border:0;background:transparent;color:var(--ink-soft);padding:8px;
+    border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .picker-tab.active{background:var(--violet-soft);color:var(--violet);}
+  .picker-grid{padding:10px;display:grid;grid-template-columns:repeat(6,1fr);gap:5px;max-height:190px;overflow:auto;}
+  .picker-grid button{border:0;background:transparent;cursor:pointer;border-radius:9px;padding:7px;
+    transition:background .12s ease,transform .12s ease;color:var(--ink);}
+  .picker-grid button:hover{background:var(--violet-soft);transform:scale(1.08);}
+  .sticker-grid{grid-template-columns:repeat(3,1fr);}
+  .sticker-grid button{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;
+    line-height:1.15;text-align:center;border:1px solid var(--border);background:var(--paper);}
+  .sticker-emoji{font-size:23px;line-height:1;}
+  .sticker-label{color:var(--ink-soft);}
+  .reply-context{
+    display:flex;align-items:center;gap:8px;margin:0 0 8px;padding:7px 10px;
+    background:var(--violet-soft);border-radius:10px;color:var(--ink-soft);font-size:12px;
+  }
+  .reply-context strong{color:var(--violet);}
+  .reply-context .close-reply{margin-left:auto;border:0;background:transparent;color:var(--ink-soft);
+    cursor:pointer;font-size:16px;line-height:1;}
+  .replying-highlight{border-left:3px solid var(--violet);padding-left:10px;}
+  .reply-toggle{
+    display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;
+    color:var(--violet);font-size:12.5px;font-weight:600;padding:5px 8px;cursor:pointer;border-radius:8px;
+  }
+  .reply-toggle:hover{background:var(--violet-soft);}
+  .reply-count{color:var(--ink-faint);font-weight:500;}
+  .reply-indicator{font-size:11px;color:var(--ink-faint);margin-left:2px;}
+  @media(max-width:600px){
+    .picker{width:min(300px,calc(100vw - 42px));}
+    .picker-grid{grid-template-columns:repeat(6,1fr);}
+    .sticker-grid{grid-template-columns:repeat(3,1fr);}
+  }
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const {useState, useEffect, useRef, useMemo, useCallback} = React;
+
+/* ---------------- helpers ---------------- */
+
+const AVATAR_COLORS = ["#6C5CE7", "#FF6B4A", "#2FAE66", "#3B82C4", "#D6558C"];
+function colorFor(seed){
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+function initials(name){
+  const parts = name.trim().split(/\s+/);
+  return (parts[0]?.[0] || "").toUpperCase() + (parts[1]?.[0] || "").toUpperCase();
+}
+function timeAgo(ts){
+  const s = Math.max(1, Math.floor((Date.now() - ts) / 1000));
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + "m ago";
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + "h ago";
+  const d = Math.floor(h / 24);
+  if (d < 7) return d + "d ago";
+  const dt = new Date(ts);
+  return dt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+function uid(){ return Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
+
+const SEED_USERS = ["Arjun", "Priya", "Kavin", "Sarah", "Rahul"];
+
+function renderTextWithMentions(text){
+  const parts = text.split(/(@[A-Za-z]+)/g);
+  return parts.map((p, i) =>
+    /^@[A-Za-z]+$/.test(p)
+      ? <span className="mention" key={i}>{p}</span>
+      : <React.Fragment key={i}>{p}</React.Fragment>
+  );
+}
+
+function seedComments(){
+  const now = Date.now();
+  return [
+    {
+      id: uid(), name: "Priya", verified: true, own: false,
+      text: "This layout genuinely feels calmer than most comment sections I've used — the reply lines make it really easy to follow who's replying to who.",
+      createdAt: now - 1000 * 60 * 60 * 5, editedAt: null,
+      likeCount: 24, dislikeCount: 1, likedByYou: false, dislikedByYou: false,
+      replies: [
+        {
+          id: uid(), name: "Arjun", verified: false, own: false,
+          text: "Agreed! The connecting line is such a small detail but it does a lot of work.",
+          createdAt: now - 1000 * 60 * 60 * 4, editedAt: null,
+          likeCount: 6, dislikeCount: 0, likedByYou: false, dislikedByYou: false,
+        },
+      ],
+    },
+    {
+      id: uid(), name: "Kavin", verified: false, own: false,
+      text: "Curious how this handles really long threads — would love to see a 'collapse replies' option for popular comments.",
+      createdAt: now - 1000 * 60 * 60 * 26, editedAt: null,
+      likeCount: 9, dislikeCount: 0, likedByYou: false, dislikedByYou: false,
+      replies: [],
+    },
+    {
+      id: uid(), name: "Sarah", verified: true, own: false,
+      text: "@Rahul check the sort dropdown — 'Most Liked' surfaces exactly the kind of feedback we need before the deadline.",
+      createdAt: now - 1000 * 60 * 15, editedAt: null,
+      likeCount: 3, dislikeCount: 0, likedByYou: false, dislikedByYou: false,
+      replies: [],
+    },
+    {
+      id: uid(), name: "Rahul", verified: false, own: false,
+      text: "The dark mode contrast is spot on. Tested it at night and nothing felt too harsh on the eyes.",
+      createdAt: now - 1000 * 60 * 60 * 72, editedAt: now - 1000 * 60 * 60 * 70,
+      likeCount: 15, dislikeCount: 0, likedByYou: false, dislikedByYou: false,
+      replies: [],
+    },
+  ];
+}
+
+const STORAGE_KEY = "design-mirror-comments-v1";
+const THEME_KEY = "design-mirror-theme-v1";
+
+/* ---------------- icons ---------------- */
+
+const Icon = {
+  heart: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>,
+  thumbDown: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M10 15v4a2 2 0 0 0 2 2l3-7V3H5.7a2 2 0 0 0-2 1.7L2.7 11a2 2 0 0 0 2 2.3H10Z" transform="translate(0,0)"/><path d="M17 3h2.5a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H17"/></svg>,
+  reply: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M9 17 4 12l5-5"/><path d="M4 12h10a6 6 0 0 1 6 6v1"/></svg>,
+  more: (p) => <svg viewBox="0 0 24 24" fill="currentColor" {...p}><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>,
+  search: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" {...p}><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>,
+  sun: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" {...p}><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2.5 12h2M19.5 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>,
+  moon: (p) => <svg viewBox="0 0 24 24" fill="currentColor" {...p}><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4 6.8 6.8 0 0 0 20 14.5Z"/></svg>,
+  smile: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="12" r="9"/><path d="M8.5 10.5h.01M15.5 10.5h.01M8 15c1.2 1.2 2.6 1.8 4 1.8s2.8-.6 4-1.8"/></svg>,
+  check: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="m20 6-11 11L4 12"/></svg>,
+  verified: (p) => <svg viewBox="0 0 24 24" fill="currentColor" {...p}><path d="M12 2.3 14.3 4l3-.4 1 2.9 2.7 1.4-.7 3 .7 3-2.7 1.4-1 2.9-3-.4L12 21.7 9.7 20l-3 .4-1-2.9-2.7-1.4.7-3-.7-3 2.7-1.4 1-2.9 3 .4Zm4.3 6.4-5.3 5.3-2.6-2.6-1.3 1.3 3.9 3.9 6.6-6.6Z"/></svg>,
+  edit: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>,
+  trash: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg>,
+  flag: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M5 3v18"/><path d="M5 4h11l-2.5 4L16 12H5"/></svg>,
+  link: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M9.5 14.5 14.5 9.5"/><path d="M11 6.5 12.6 5A4 4 0 1 1 18 10.4L16.5 12"/><path d="M13 17.5 11.4 19A4 4 0 1 1 6 13.6L7.5 12"/></svg>,
+  x: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" {...p}><path d="M6 6l12 12M18 6 6 18"/></svg>,
+  chat: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M21 12a8 8 0 1 1-3.4-6.5"/><path d="M21 3v6h-6"/></svg>,
+  bubble: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 9 9 0 0 1-3.6-.8L3 20l1.05-3.5A8.4 8.4 0 1 1 21 11.5Z"/></svg>,
+};
+
+const EMOJIS = ["😀","😂","😍","🤔","👍","👎","🎉","🔥","❤️","😅","🙌","👏","😮","😢","🚀","✨","💡","👀","💯","🙏","😎","🤝","📌","⭐"];
+const STICKERS = [
+  {emoji:"👏", label:"Great point!"},
+  {emoji:"🔥", label:"Love this!"},
+  {emoji:"💡", label:"Great idea!"},
+  {emoji:"😂", label:"That made me laugh!"},
+  {emoji:"❤️", label:"Well said!"},
+  {emoji:"🚀", label:"Let's go!"},
+  {emoji:"✨", label:"Awesome!"},
+  {emoji:"🙌", label:"Totally agree!"},
+  {emoji:"🎉", label:"Congratulations!"},
+  {emoji:"🤝", label:"Deal!"},
+  {emoji:"👀", label:"Interesting!"},
+  {emoji:"💯", label:"Absolutely!"}
+];
+
+/* ---------------- small components ---------------- */
+
+function Avatar({name, size}){
+  const cls = size === "sm" ? "avatar sm" : size === "xs" ? "avatar xs" : "avatar";
+  return <div className={cls} style={{background: colorFor(name)}}>{initials(name)}</div>;
+}
+
+function useOutsideClose(onClose){
+  const ref = useRef(null);
+  useEffect(() => {
+    function handle(e){ if (ref.current && !ref.current.contains(e.target)) onClose(); }
+    function handleEsc(e){ if (e.key === "Escape") onClose(); }
+    document.addEventListener("mousedown", handle);
+    document.addEventListener("keydown", handleEsc);
+    return () => {
+      document.removeEventListener("mousedown", handle);
+      document.removeEventListener("keydown", handleEsc);
+    };
+  }, [onClose]);
+  return ref;
+}
+
+function MoreMenu({own, onEdit, onDelete, onReport, onCopyLink, onClose}){
+  const ref = useOutsideClose(onClose);
+  return (
+    <div className="more-menu" ref={ref} role="menu">
+      {own && <button role="menuitem" onClick={onEdit}><Icon.edit/> Edit</button>}
+      {own && <button role="menuitem" className="danger" onClick={onDelete}><Icon.trash/> Delete</button>}
+      {!own && <button role="menuitem" className="danger" onClick={onReport}><Icon.flag/> Report</button>}
+      <button role="menuitem" onClick={onCopyLink}><Icon.link/> Copy link</button>
+    </div>
+  );
+}
+
+function ComposerBox({
+  placeholder, initialValue = "", autoFocus, onSubmit, onCancel, submitLabel = "Post Comment", small,
+  replyToName = null, onCancelReply = null
+}){
+  const [text, setText] = useState(initialValue);
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickerTab, setPickerTab] = useState("emoji");
+  const [mentionQuery, setMentionQuery] = useState(null);
+  const taRef = useRef(null);
+  const pickerRef = useOutsideClose(() => setShowPicker(false));
+
+  useEffect(() => {
+    if (autoFocus && taRef.current) taRef.current.focus();
+  }, [autoFocus]);
+
+  const max = 500;
+  const remaining = max - text.length;
+  const countClass = remaining < 0 ? "max" : remaining < 50 ? "warn" : "";
+
+  function handleChange(e){
+    const val = e.target.value.slice(0, max);
+    setText(val);
+    const upToCursor = val.slice(0, e.target.selectionStart);
+    const m = upToCursor.match(/@([A-Za-z]*)$/);
+    setMentionQuery(m ? m[1] : null);
+  }
+
+  function insertMention(name){
+    const cursor = taRef.current ? taRef.current.selectionStart : text.length;
+    const before = text.slice(0, cursor).replace(/@([A-Za-z]*)$/, "@" + name + " ");
+    const after = text.slice(cursor);
+    setText(before + after);
+    setMentionQuery(null);
+    requestAnimationFrame(() => taRef.current && taRef.current.focus());
+  }
+
+  function insertAtCursor(value){
+    const el = taRef.current;
+    if (!el) { setText((t) => (t + value).slice(0, max)); return; }
+    const startPos = el.selectionStart;
+    const endPos = el.selectionEnd;
+    const next = (text.slice(0,startPos) + value + text.slice(endPos)).slice(0,max);
+    setText(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = Math.min(startPos + value.length, max);
+      el.setSelectionRange(pos,pos);
+    });
+  }
+
+  function insertEmoji(e){ insertAtCursor(e); }
+  function insertSticker(s){ insertAtCursor(s.emoji + " " + s.label + " "); }
+
+  function submit(){
+    const trimmed = text.trim();
+    if (!trimmed || trimmed.length > max) return;
+    onSubmit(trimmed);
+    setText("");
+    setShowPicker(false);
+  }
+
+  function handleKeyDown(e){
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); submit(); }
+    if (e.key === "Escape" && onCancel) onCancel();
+  }
+
+  const mentionMatches = mentionQuery !== null
+    ? SEED_USERS.filter((u) => u.toLowerCase().startsWith(mentionQuery.toLowerCase()))
+    : [];
+
+  return (
+    <div className="composer-body">
+      {replyToName && (
+        <div className="reply-context">
+          <span>↩</span>
+          <span>Replying to <strong>@{replyToName}</strong></span>
+          {onCancelReply && (
+            <button className="close-reply" type="button" onClick={onCancelReply} aria-label="Cancel reply">×</button>
+          )}
+        </div>
+      )}
+      <textarea
+        ref={taRef}
+        value={text}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        maxLength={max}
+        aria-label={placeholder}
+        rows={small ? 2 : 3}
+      />
+      {mentionMatches.length > 0 && (
+        <div className="mention-pop" role="listbox">
+          {mentionMatches.map((u) => (
+            <button key={u} onClick={() => insertMention(u)} role="option">
+              <Avatar name={u} size="xs" /> {u}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="composer-footer">
+        <div className="composer-tools" ref={pickerRef}>
+          <button
+            type="button"
+            className={"tool-btn" + (showPicker ? " active" : "")}
+            aria-label="Open emoji and sticker picker"
+            title="Emoji & stickers"
+            onClick={() => setShowPicker((s) => !s)}
+          >
+            <Icon.smile/>
+          </button>
+
+          {showPicker && (
+            <div className="picker" role="dialog" aria-label="Emoji and sticker picker">
+              <div className="picker-tabs">
+                <button className={"picker-tab" + (pickerTab === "emoji" ? " active" : "")}
+                  onClick={() => setPickerTab("emoji")} type="button">😀 Emoji</button>
+                <button className={"picker-tab" + (pickerTab === "sticker" ? " active" : "")}
+                  onClick={() => setPickerTab("sticker")} type="button">✨ Stickers</button>
+              </div>
+
+              {pickerTab === "emoji" ? (
+                <div className="picker-grid">
+                  {EMOJIS.map((e) => (
+                    <button key={e} type="button" onClick={() => insertEmoji(e)} aria-label={"Insert " + e}>{e}</button>
+                  ))}
+                </div>
+              ) : (
+                <div className="picker-grid sticker-grid">
+                  {STICKERS.map((s) => (
+                    <button key={s.label} type="button" onClick={() => insertSticker(s)}>
+                      <span className="sticker-emoji">{s.emoji}</span>
+                      <span className="sticker-label">{s.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <span className={"char-count " + countClass}>{remaining}</span>
+        </div>
+
+        <div style={{display: "flex", gap: 8}}>
+          {onCancel && (
+            <button className="btn btn-ghost btn-sm" onClick={onCancel} type="button">Cancel</button>
+          )}
+          <button
+            className={"btn btn-primary" + (small ? " btn-sm" : "")}
+            disabled={!text.trim() || text.trim().length > max}
+            onClick={submit}
+            type="button"
+          >
+            {submitLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function LikeDislike({item, onLike, onDislike}){
+  const [bump, setBump] = useState(null);
+  function like(){ setBump("l"); onLike(); setTimeout(() => setBump(null), 300); }
+  function dislike(){ setBump("d"); onDislike(); setTimeout(() => setBump(null), 300); }
+  return (
+    <React.Fragment>
+      <button
+        className={"action-btn like" + (item.likedByYou ? " on" : "") + (bump === "l" ? " bump" : "")}
+        onClick={like}
+        aria-pressed={item.likedByYou}
+        aria-label={item.likedByYou ? "Remove like" : "Like this comment"}
+        title="Like"
+      >
+        <Icon.heart /> {item.likeCount}
+      </button>
+      <button
+        className={"action-btn dislike" + (item.dislikedByYou ? " on" : "") + (bump === "d" ? " bump" : "")}
+        onClick={dislike}
+        aria-pressed={item.dislikedByYou}
+        aria-label={item.dislikedByYou ? "Remove dislike" : "Dislike this comment"}
+        title="Dislike"
+      >
+        <Icon.thumbDown /> {item.dislikeCount > 0 ? item.dislikeCount : ""}
+      </button>
+    </React.Fragment>
+  );
+}
+
+function ReplyItem({reply, onLike, onDislike, onEdit, onDelete, onReport, onCopyLink, flashId}){
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+
+  return (
+    <div className={"comment" + (reply.removing ? " removing" : "") + (flashId === reply.id ? " flash" : "")} style={{padding: "0", borderBottom: "none"}}>
+      <Avatar name={reply.name} size="sm" />
+      <div className="comment-main">
+        <div className="comment-headline">
+          <span className="comment-name">{reply.name}</span>
+          {reply.verified && <span className="verified-badge" title="Verified"><Icon.verified/></span>}
+          <span className="comment-time">{timeAgo(reply.createdAt)}</span>
+          {reply.editedAt && <span className="comment-edited">Edited</span>}
+        </div>
+
+        {editing ? (
+          <div className="edit-row" style={{marginTop: 8}}>
+            <ComposerBox
+              placeholder="Edit your reply…"
+              initialValue={reply.text}
+              autoFocus
+              small
+              submitLabel="Save"
+              onCancel={() => setEditing(false)}
+              onSubmit={(val) => { onEdit(val); setEditing(false); }}
+            />
+          </div>
+        ) : (
+          <p className="comment-text">{renderTextWithMentions(reply.text)}</p>
+        )}
+
+        {!editing && (
+          <div className="comment-actions">
+            <LikeDislike item={reply} onLike={onLike} onDislike={onDislike} />
+            <button
+              className="action-btn"
+              aria-label="More options"
+              title="More"
+              onClick={() => setMenuOpen((m) => !m)}
+            >
+              <Icon.more/>
+            </button>
+            {menuOpen && (
+              <MoreMenu
+                own={reply.own}
+                onEdit={() => { setEditing(true); setMenuOpen(false); }}
+                onDelete={() => { onDelete(); setMenuOpen(false); }}
+                onReport={() => { onReport(); setMenuOpen(false); }}
+                onCopyLink={() => { onCopyLink(); setMenuOpen(false); }}
+                onClose={() => setMenuOpen(false)}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CommentItem({comment, dispatch, flashId, registerRef}){
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [replying, setReplying] = useState(false);
+  const [showReplies, setShowReplies] = useState(true);
+  const elRef = useRef(null);
+
+  useEffect(() => {
+    if (registerRef) registerRef(comment.id, elRef.current);
+  }, [comment.id, registerRef]);
+
+  function startReply(){
+    setReplying(true);
+    setShowReplies(true);
+  }
+
+  return (
+    <div
+      ref={elRef}
+      className={"comment" + (comment.removing ? " removing" : "") + (flashId === comment.id ? " flash" : "")}
+    >
+      <Avatar name={comment.name} />
+      <div className="comment-main">
+        <div className="comment-headline">
+          <span className="comment-name">{comment.name}</span>
+          {comment.verified && <span className="verified-badge" title="Verified account"><Icon.verified/></span>}
+          <span className="comment-time">{timeAgo(comment.createdAt)}</span>
+          {comment.editedAt && <span className="comment-edited">Edited</span>}
+        </div>
+
+        {editing ? (
+          <div className="edit-row" style={{marginTop: 8}}>
+            <ComposerBox
+              placeholder="Edit your comment…"
+              initialValue={comment.text}
+              autoFocus
+              small
+              submitLabel="Save"
+              onCancel={() => setEditing(false)}
+              onSubmit={(val) => { dispatch({type: "EDIT", id: comment.id, text: val}); setEditing(false); }}
+            />
+          </div>
+        ) : (
+          <p className="comment-text">{renderTextWithMentions(comment.text)}</p>
+        )}
+
+        {!editing && (
+          <div className="comment-actions">
+            <LikeDislike
+              item={comment}
+              onLike={() => dispatch({type: "LIKE", id: comment.id})}
+              onDislike={() => dispatch({type: "DISLIKE", id: comment.id})}
+            />
+
+            <button
+              className={"action-btn" + (replying ? " active" : "")}
+              onClick={startReply}
+              aria-expanded={replying}
+              title={"Reply to " + comment.name}
+            >
+              <Icon.reply/> Reply
+            </button>
+
+            {comment.replies.length > 0 && (
+              <button
+                className="reply-toggle"
+                onClick={() => setShowReplies((s) => !s)}
+                aria-expanded={showReplies}
+                title={showReplies ? "Hide replies" : "Show replies"}
+              >
+                {showReplies ? "Hide" : "View"} replies
+                <span className="reply-count">({comment.replies.length})</span>
+              </button>
+            )}
+
+            <button
+              className="action-btn"
+              aria-label="More options"
+              title="More"
+              onClick={() => setMenuOpen((m) => !m)}
+            >
+              <Icon.more/>
+            </button>
+
+            {menuOpen && (
+              <MoreMenu
+                own={comment.own}
+                onEdit={() => { setEditing(true); setMenuOpen(false); }}
+                onDelete={() => { dispatch({type: "REQUEST_DELETE", id: comment.id}); setMenuOpen(false); }}
+                onReport={() => { dispatch({type: "REPORT"}); setMenuOpen(false); }}
+                onCopyLink={() => { dispatch({type: "COPY_LINK", id: comment.id}); setMenuOpen(false); }}
+                onClose={() => setMenuOpen(false)}
+              />
+            )}
+          </div>
+        )}
+
+        {replying && (
+          <div className="reply-input-row replying-highlight">
+            <Avatar name="You" size="sm" />
+            <ComposerBox
+              placeholder={`Write a reply to ${comment.name}…`}
+              autoFocus
+              small
+              submitLabel="Reply"
+              replyToName={comment.name}
+              onCancelReply={() => setReplying(false)}
+              onCancel={() => setReplying(false)}
+              onSubmit={(val) => {
+                dispatch({type: "REPLY", id: comment.id, text: val});
+                setReplying(false);
+                setShowReplies(true);
+              }}
+            />
+          </div>
+        )}
+
+        {comment.replies.length > 0 && showReplies && (
+          <div className="replies">
+            {comment.replies.map((r) => (
+              <ReplyItem
+                key={r.id}
+                reply={r}
+                flashId={flashId}
+                onLike={() => dispatch({type: "LIKE", id: comment.id, replyId: r.id})}
+                onDislike={() => dispatch({type: "DISLIKE", id: comment.id, replyId: r.id})}
+                onEdit={(text) => dispatch({type: "EDIT", id: comment.id, replyId: r.id, text})}
+                onDelete={() => dispatch({type: "REQUEST_DELETE", id: comment.id, replyId: r.id})}
+                onReport={() => dispatch({type: "REPORT"})}
+                onCopyLink={() => dispatch({type: "COPY_LINK", id: r.id})}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SkeletonList(){
+  return (
+    <div>
+      {[0, 1, 2].map((i) => (
+        <div className="skeleton-item" key={i}>
+          <div className="sk sk-avatar"></div>
+          <div style={{flex: 1}}>
+            <div className="sk sk-line" style={{width: "30%"}}></div>
+            <div className="sk sk-line" style={{width: "90%"}}></div>
+            <div className="sk sk-line" style={{width: "60%"}}></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmptyState({query, onClear}){
+  if (query) {
+    return (
+      <div className="empty-state">
+        <div className="glyph"><Icon.search/></div>
+        <h3>No results for "{query}"</h3>
+        <p>Try a different search term, or clear the search to see every comment.</p>
+        <button className="btn btn-ghost btn-sm" onClick={onClear}>Clear search</button>
+      </div>
+    );
+  }
+  return (
+    <div className="empty-state">
+      <div className="glyph"><Icon.bubble/></div>
+      <h3>No comments yet</h3>
+      <p>Be the first to share your thoughts on this — your comment will show up right here.</p>
+    </div>
+  );
+}
+
+/* ---------------- root app ---------------- */
+
+function App(){
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem(THEME_KEY) || "auto"; } catch (e) { return "auto"; }
+  });
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [sortBy, setSortBy] = useState("relevant");
+  const [toasts, setToasts] = useState([]);
+  const [confirmTarget, setConfirmTarget] = useState(null);
+  const [justPosted, setJustPosted] = useState(false);
+  const [flashId, setFlashId] = useState(null);
+  const nodeRefs = useRef({});
+
+  // theme
+  useEffect(() => {
+    if (theme === "auto") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+  }, [theme]);
+
+  // load
+  useEffect(() => {
+    let cancelled = false;
+    setTimeout(() => {
+      if (cancelled) return;
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          setComments(JSON.parse(raw));
+        } else {
+          setComments(seedComments());
+        }
+      } catch (e) {
+        setComments(seedComments());
+      }
+      setLoading(false);
+    }, 700);
+    return () => { cancelled = true; };
+  }, []);
+
+  // persist
+  useEffect(() => {
+    if (loading) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+    } catch (e) {
+      pushToast("error", "Couldn't save your changes locally.");
+    }
+    // eslint-disable-next-line
+  }, [comments, loading]);
+
+  function pushToast(type, message){
+    const id = uid();
+    setToasts((t) => [...t, {id, type, message}]);
+    setTimeout(() => {
+      setToasts((t) => t.filter((x) => x.id !== id));
+    }, 3200);
+  }
+
+  const totalCount = useMemo(() => {
+    return comments.reduce((acc, c) => acc + 1 + c.replies.length, 0);
+  }, [comments]);
+
+  function dispatch(action){
+    switch (action.type) {
+      case "LIKE":
+      case "DISLIKE": {
+        setComments((prev) => prev.map((c) => {
+          if (action.replyId) {
+            if (c.id !== action.id) return c;
+            return {
+              ...c,
+              replies: c.replies.map((r) => r.id === action.replyId ? applyVote(r, action.type) : r),
+            };
+          }
+          if (c.id !== action.id) return c;
+          return applyVote(c, action.type);
+        }));
+        break;
+      }
+      case "REQUEST_DELETE":
+        setConfirmTarget({id: action.id, replyId: action.replyId || null});
+        break;
+      case "EDIT": {
+        setComments((prev) => prev.map((c) => {
+          if (action.replyId) {
+            if (c.id !== action.id) return c;
+            return {
+              ...c,
+              replies: c.replies.map((r) => r.id === action.replyId
+                ? {...r, text: action.text, editedAt: Date.now()}
+                : r),
+            };
+          }
+          if (c.id !== action.id) return c;
+          return {...c, text: action.text, editedAt: Date.now()};
+        }));
+        pushToast("success", "Your edit was saved.");
+        break;
+      }
+      case "REPLY": {
+        setComments((prev) => prev.map((c) => {
+          if (c.id !== action.id) return c;
+          const reply = {
+            id: uid(), name: "You", verified: false, own: true,
+            text: action.text, createdAt: Date.now(), editedAt: null,
+            likeCount: 0, dislikeCount: 0, likedByYou: false, dislikedByYou: false,
+          };
+          return {...c, replies: [...c.replies, reply]};
+        }));
+        pushToast("success", "Reply posted.");
+        break;
+      }
+      case "REPORT":
+        pushToast("info", "Thanks — this comment has been reported for review.");
+        break;
+      case "COPY_LINK": {
+        const link = "https://designmirror.app/comments#" + action.id;
+        try {
+          navigator.clipboard.writeText(link);
+          pushToast("success", "Link copied to clipboard.");
+        } catch (e) {
+          pushToast("error", "Couldn't copy the link.");
+        }
+        break;
+      }
+      default: break;
+    }
+  }
+
+  function applyVote(item, type){
+    if (type === "LIKE") {
+      const nowLiked = !item.likedByYou;
+      return {
+        ...item,
+        likedByYou: nowLiked,
+        likeCount: item.likeCount + (nowLiked ? 1 : -1),
+        dislikedByYou: nowLiked ? false : item.dislikedByYou,
+        dislikeCount: nowLiked && item.dislikedByYou ? item.dislikeCount - 1 : item.dislikeCount,
+      };
+    } else {
+      const nowDisliked = !item.dislikedByYou;
+      return {
+        ...item,
+        dislikedByYou: nowDisliked,
+        dislikeCount: item.dislikeCount + (nowDisliked ? 1 : -1),
+        likedByYou: nowDisliked ? false : item.likedByYou,
+        likeCount: nowDisliked && item.likedByYou ? item.likeCount - 1 : item.likeCount,
+      };
+    }
+  }
+
+  function confirmDelete(){
+    const {id, replyId} = confirmTarget;
+    // mark removing for animation
+    setComments((prev) => prev.map((c) => {
+      if (replyId) {
+        if (c.id !== id) return c;
+        return {...c, replies: c.replies.map((r) => r.id === replyId ? {...r, removing: true} : r)};
+      }
+      return c.id === id ? {...c, removing: true} : c;
+    }));
+    setConfirmTarget(null);
+    setTimeout(() => {
+      setComments((prev) => {
+        if (replyId) {
+          return prev.map((c) => c.id === id
+            ? {...c, replies: c.replies.filter((r) => r.id !== replyId)}
+            : c);
+        }
+        return prev.filter((c) => c.id !== id);
+      });
+      pushToast("success", "Comment deleted.");
+    }, 300);
+  }
+
+  function postComment(text){
+    const comment = {
+      id: uid(), name: "You", verified: false, own: true,
+      text, createdAt: Date.now(), editedAt: null,
+      likeCount: 0, dislikeCount: 0, likedByYou: false, dislikedByYou: false,
+      replies: [],
+    };
+    setComments((prev) => [comment, ...prev]);
+    setJustPosted(true);
+    setFlashId(comment.id);
+    setTimeout(() => setJustPosted(false), 1800);
+    setTimeout(() => setFlashId(null), 1600);
+    pushToast("success", "Comment posted.");
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const node = nodeRefs.current[comment.id];
+        if (node) node.scrollIntoView({behavior: "smooth", block: "center"});
+      }, 60);
+    });
+  }
+
+  const visibleComments = useMemo(() => {
+    let list = comments;
+    if (query.trim()) {
+      const q = query.trim().toLowerCase();
+      list = list.filter((c) =>
+        c.text.toLowerCase().includes(q) ||
+        c.name.toLowerCase().includes(q) ||
+        c.replies.some((r) => r.text.toLowerCase().includes(q) || r.name.toLowerCase().includes(q))
+      );
+    }
+    const arr = [...list];
+    switch (sortBy) {
+      case "newest": arr.sort((a, b) => b.createdAt - a.createdAt); break;
+      case "oldest": arr.sort((a, b) => a.createdAt - b.createdAt); break;
+      case "liked": arr.sort((a, b) => b.likeCount - a.likeCount); break;
+      default: arr.sort((a, b) => (b.likeCount - b.dislikeCount) - (a.likeCount - a.dislikeCount) || b.createdAt - a.createdAt);
+    }
+    return arr;
+  }, [comments, query, sortBy]);
+
+  const cycleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+  const isDark = theme === "dark" || (theme === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  return (
+    <div className="app-shell">
+      <div className="panel">
+        <div className="header">
+          <div className="header-title-wrap">
+            <h2 className="header-title">Comments</h2>
+            <span className="header-count">{totalCount}</span>
+          </div>
+          <div className="header-actions">
+            <button
+              className={"icon-btn" + (searchOpen ? " active" : "")}
+              aria-label="Search comments"
+              title="Search comments"
+              onClick={() => setSearchOpen((s) => !s)}
+            >
+              <Icon.search/>
+            </button>
+            <select
+              className="sort-select"
+              aria-label="Sort comments"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="relevant">Most Relevant</option>
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="liked">Most Liked</option>
+            </select>
+            <button
+              className="icon-btn"
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              title="Toggle theme"
+              onClick={cycleTheme}
+            >
+              {isDark ? <Icon.sun/> : <Icon.moon/>}
+            </button>
+          </div>
+        </div>
+
+        <div className={"search-row" + (searchOpen ? " open" : "")}>
+          <div className="search-input-wrap">
+            <Icon.search/>
+            <input
+              type="text"
+              placeholder="Search comments…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="Search comments input"
+            />
+            {query && (
+              <button
+                className="icon-btn"
+                style={{width: 24, height: 24, border: "none"}}
+                aria-label="Clear search"
+                onClick={() => setQuery("")}
+              >
+                <Icon.x style={{width: 13, height: 13}}/>
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="composer">
+          <Avatar name="You" />
+          <div style={{flex: 1}}>
+            <ComposerBox
+              placeholder="Share your thoughts…"
+              onSubmit={postComment}
+            />
+            {justPosted && (
+              <div style={{marginTop: 8}}>
+                <span className="post-success"><Icon.check/> Posted successfully</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="list">
+          {loading ? (
+            <SkeletonList/>
+          ) : visibleComments.length === 0 ? (
+            <EmptyState query={query} onClear={() => setQuery("")} />
+          ) : (
+            visibleComments.map((c) => (
+              <CommentItem
+                key={c.id}
+                comment={c}
+                dispatch={dispatch}
+                flashId={flashId}
+                registerRef={(id, node) => { nodeRefs.current[id] = node; }}
+              />
+            ))
+          )}
+        </div>
+      </div>
+
+      {confirmTarget && (
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+          <div className="modal-box">
+            <h4 id="confirm-title">Delete this comment?</h4>
+            <p>Are you sure you want to delete this comment? This can't be undone.</p>
+            <div className="modal-actions">
+              <button className="btn btn-ghost btn-sm" onClick={() => setConfirmTarget(null)}>Cancel</button>
+              <button className="btn btn-danger btn-sm" onClick={confirmDelete} autoFocus>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="toast-stack" aria-live="polite">
+        {toasts.map((t) => (
+          <div className={"toast " + t.type} key={t.id}>
+            <span className="dot"></span>
+            <span>{t.message}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
